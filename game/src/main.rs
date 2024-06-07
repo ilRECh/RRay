@@ -1,5 +1,7 @@
 use engine;
 
 fn main() {
-    engine::run("rray", "ilRECh");
+    if let Err(e) = engine::run("rray", "ilRECh") {
+        println!("{}", e.to_string());
+    }
 }
