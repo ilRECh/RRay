@@ -4,7 +4,7 @@ use ggez::{
     GameResult
 };
 
-use super::world_map::WorldMap;
+use crate::WorldMap;
 
 pub struct Player {
     pub position: Point2<f64>,

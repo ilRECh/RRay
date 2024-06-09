@@ -1,3 +1,6 @@
+mod player;
+mod world_map;
+
 use ggez::{
     conf, event::{
         self,
@@ -5,18 +8,20 @@ use ggez::{
     }, glam::*, graphics::{
         self,
         Color
-    }, mint::Point2, Context, ContextBuilder, GameResult
+    },
+    input::keyboard::KeyCode,
+    mint::Point2,
+    Context,
+    ContextBuilder,
+    GameResult
 };
 
-mod player;
 use player::Player;
-
-mod world_map;
 use world_map::WorldMap;
 
 struct GameState {
     world_map: WorldMap,
-    player: Player
+    player: Player,
 }
 
 impl GameState {
@@ -26,19 +31,121 @@ impl GameState {
 
         Ok(Self {
             world_map,
-            player
+            player,
         })
     }
 }
 
 impl EventHandler for GameState {  
     fn update(&mut self, ctx: &mut Context) -> GameResult {
+        const DESIRED_FPS: u32 = 60;
+        const MODIFIER_MOVE_SPEED: f64 = 5.0;
 
-        let keyboard = ctx.keyboard.pressed_keys();
+        while ctx.time.check_update_time(DESIRED_FPS) {
+            let keyboard = ctx.keyboard.pressed_keys();
+    
+            if !keyboard.is_empty() {
+                for key in keyboard.iter() {
+                    match key {
+                        KeyCode::W => {
+                            let move_speed = ctx.time.delta().as_millis() as f64 / 1000.0 * MODIFIER_MOVE_SPEED;
+                            let player = &mut self.player;
+                            let (next_position_x, next_position_y) = (
+                                player.position.x + player.direction.x * move_speed,
+                                player.position.y + player.direction.y * move_speed
+                            );
 
-        if !keyboard.is_empty() {
-            for key in keyboard.iter() {
-                println!("{:#?} is pressed", key);
+                            if self.world_map.at(
+                                next_position_x as i32,
+                                player.position.y as i32
+                            ).unwrap() == 0 {
+                                player.position.x = next_position_x;
+                            }
+
+                            if self.world_map.at(
+                                player.position.x as i32,
+                                next_position_y as i32
+                            ).unwrap() == 0 {
+                                player.position.y = next_position_y;
+                            }
+                        },
+                        KeyCode::A => {
+                            let move_speed = ctx.time.delta().as_millis() as f64 / 1000.0 * MODIFIER_MOVE_SPEED;
+                            let player = &mut self.player;
+                            let (perp_direction_x, perp_direction_y) = (
+                                player.direction.y * -1.0,
+                                player.direction.x
+                            );
+                            let (next_position_x, next_position_y) = (
+                                player.position.x + perp_direction_x * move_speed,
+                                player.position.y + perp_direction_y * move_speed
+                            );
+
+                            if self.world_map.at(
+                                next_position_x as i32,
+                                player.position.y as i32
+                            ).unwrap() == 0 {
+                                player.position.x = next_position_x;
+                            }
+
+                            if self.world_map.at(
+                                player.position.x as i32,
+                                next_position_y as i32
+                            ).unwrap() == 0 {
+                                player.position.y = next_position_y;
+                            }
+                        },
+                        KeyCode::S => {
+                            let move_speed = ctx.time.delta().as_millis() as f64 / 1000.0 * MODIFIER_MOVE_SPEED;
+                            let player = &mut self.player;
+                            let (next_position_x, next_position_y) = (
+                                player.position.x - player.direction.x * move_speed,
+                                player.position.y - player.direction.y * move_speed
+                            );
+
+                            if self.world_map.at(
+                                next_position_x as i32,
+                                player.position.y as i32
+                            ).unwrap() == 0 {
+                                player.position.x = next_position_x;
+                            }
+
+                            if self.world_map.at(
+                                player.position.x as i32,
+                                next_position_y as i32
+                            ).unwrap() == 0 {
+                                player.position.y = next_position_y;
+                            }
+                        },
+                        KeyCode::D => {
+                            let move_speed = ctx.time.delta().as_millis() as f64 / 1000.0 * MODIFIER_MOVE_SPEED;
+                            let player = &mut self.player;
+                            let (perp_direction_x, perp_direction_y) = (
+                                player.direction.y,
+                                player.direction.x * -1.0
+                            );
+                            let (next_position_x, next_position_y) = (
+                                player.position.x + perp_direction_x * move_speed,
+                                player.position.y + perp_direction_y * move_speed
+                            );
+
+                            if self.world_map.at(
+                                next_position_x as i32,
+                                player.position.y as i32
+                            ).unwrap() == 0 {
+                                player.position.x = next_position_x;
+                            }
+
+                            if self.world_map.at(
+                                player.position.x as i32,
+                                next_position_y as i32
+                            ).unwrap() == 0 {
+                                player.position.y = next_position_y;
+                            }
+                        },
+                        _ => ()
+                    }
+                }
             }
         }
 
@@ -46,9 +153,6 @@ impl EventHandler for GameState {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-
-        // return Ok(());
-
         let mut canvas = graphics::Canvas::from_frame(ctx, Color::BLACK);
 
         let player = &self.player;
@@ -153,7 +257,11 @@ impl EventHandler for GameState {
             graphics::DrawParam::new());
         }
 
-        canvas.finish(ctx)
+        canvas.finish(ctx)?;
+
+        ggez::timer::yield_now();
+
+        Ok(())
     }
 }
 

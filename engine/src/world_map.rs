@@ -63,7 +63,7 @@ impl WorldMap {
         Ok(())
     }
 
-    pub fn check_limits(&self, x: i32, y: i32) -> GameResult {
+    fn check_limits(&self, x: i32, y: i32) -> GameResult {
         if !(x >= 0 && (x as usize) < self.world_map.len()) ||
            !(y >= 0 && (y as usize) < self.world_map[0].len()) {
             let mut error_str = String::from("Err with coordintates: (x: ");
