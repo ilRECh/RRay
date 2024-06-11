@@ -14,7 +14,7 @@ pub struct Player {
 
 impl Player {
     pub fn new(x: i32, y: i32, map: &mut WorldMap) -> GameResult<Self> {
-        map.insert(b'P' as i32, x, y)?;
+        // map.insert(b'P' as i32, x, y)?;
 
         Ok(Self {
             position: Point2::from_slice(&[x as f64, y as f64]),
