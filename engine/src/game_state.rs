@@ -1,12 +1,9 @@
 use std::collections::HashSet;
 
 use ggez::{
-    event::EventHandler,
-    glam::*, graphics::{
-        self,
-        Color
-    },
-    input::{
+    event::EventHandler, glam::*, graphics::{
+        self, Color, DrawParam, Rect
+    }, input::{
         keyboard::KeyCode,
         mouse
     },
@@ -22,115 +19,88 @@ use std::{
     cell::RefCell
 };
 
-const UPDATE_TIME_SHIFT: u128 = 10;
-
 pub struct GameState {
+    screen: graphics::ScreenImage,
     screen_size: PhysicalSize<u32>,
     world_map: Rc<RefCell<WorldMap>>,
     player: Player,
-
-    time_next_update: u128,
-    redraw: bool
 }
 
 impl GameState {
     pub fn new(ctx: &mut Context) -> GameResult<Self> {
-        let mut world_map = Rc::new(RefCell::new(WorldMap::new()));
+        let world_map = Rc::new(RefCell::new(WorldMap::new()));
         let player = Player::new(22, 12, &world_map)?;
 
         mouse::set_cursor_grabbed(ctx, true)?;
 
+        let screen = 
+            graphics::ScreenImage::new(ctx, graphics::ImageFormat::Rgba8UnormSrgb, 1., 1., 1);
+
         Ok(Self {
+            screen,
             screen_size: ctx.gfx.window().outer_size(),
             world_map,
             player,
-            time_next_update: 0,
-            redraw: true
         })
     }
 }
 
 impl GameState {
-    fn handle_keyboard(&mut self, keyboard: &HashSet<KeyCode>) -> bool {
+    fn handle_keyboard(&mut self, keyboard: &HashSet<KeyCode>) {
         if keyboard.is_empty() {
-           return false; 
+           return; 
         }
 
-        let mut status = false;
-
         for key in keyboard.iter() {
-            status = match key {
+            match key {
                 KeyCode::W => {
                     self.player.move_forward();
-
-                    true
                 },
                 KeyCode::A => {
                     self.player.move_strafe_left();
-
-                    true
                 },
                 KeyCode::S => {
                     self.player.move_backward();
-
-                    true
                 },
                 KeyCode::D => {
                     self.player.move_strafe_right();
-
-                    true
                 },
-                _ => status
-            };
+                _ => ()
+            }
         }
-
-        status
     }
 
-    fn handle_mouse(&mut self, mouse_position_x: f32) -> bool {
+    fn handle_mouse(&mut self, mouse_position_x: f32) {
         let mouse_offset = mouse_position_x - self.screen_size.width as f32 / 2.0;
 
         if mouse_offset.abs() > self.screen_size.width as f32 / 4.0 {
             self.player.move_rotate(-1.0 * mouse_offset);
-        
-            return true;
         }
-
-        false
     }
 }
 
 impl EventHandler for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        let current_time = ctx.time.time_since_start().as_millis();
+        // if ctx.time.ticks() % 100 == 0 {
+        //     println!("{}  {}", ctx.time.fps(), ctx.time.delta().as_millis());
+        // }
 
-        if current_time < self.time_next_update {
-            return Ok(());
-        }
+        const DESIRED_FPS: u32 = 60;
 
-        self.time_next_update = current_time + UPDATE_TIME_SHIFT;
-
-        if self.handle_keyboard(ctx.keyboard.pressed_keys()) {
-            self.redraw = true;
-        }
-
-        if self.handle_mouse(ctx.mouse.position().x) {
-            self.redraw = true;
+        while ctx.time.check_update_time(DESIRED_FPS) {
+            self.handle_keyboard(ctx.keyboard.pressed_keys());
+            self.handle_mouse(ctx.mouse.position().x);
         }
 
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        if !self.redraw {
-            return Ok(());
-        }
-
-        self.redraw = false;
-
-        let mut canvas = graphics::Canvas::from_frame(ctx, Color::BLACK);
-
+        let mut canvas = graphics::Canvas::from_screen_image(ctx, &mut self.screen, Color::BLACK);
         let player = &self.player;
+
+        let mut lines = graphics::InstanceArray::new(ctx, None);
+        lines.resize(ctx, 640);
 
         for x in 0..self.screen_size.width {
             let screen_x = 2.0 * (x as f32) / (self.screen_size.width as f32) - 1.0;
@@ -173,24 +143,22 @@ impl EventHandler for GameState {
                     side = 1;
                 }
 
-                match self.world_map.borrow_mut().at(map_x, map_y) {
-                    Ok(maybe_wall) if maybe_wall > 0 && maybe_wall != b'P' as i32 => {
-                        let mut color = match maybe_wall {
-                            1 => Color::RED,
-                            2 => Color::GREEN,
-                            3 => Color::BLUE,
-                            4 => Color::YELLOW,
-                            _ => Color::WHITE
-                        };
-                    
-                        if side == 1 {
-                            color.a /= 2.0;
-                        }
+                let maybe_wall = self.world_map.borrow_mut().at(&mut map_x, &mut map_y);
 
-                        break color;
-                    },
-                    Err(e) => return Err(e),
-                    _ => ()
+                if maybe_wall > 0 && maybe_wall != b'P' as i32 {
+                    let mut color = match maybe_wall {
+                        1 => Color::RED,
+                        2 => Color::GREEN,
+                        3 => Color::BLUE,
+                        4 => Color::YELLOW,
+                        _ => Color::WHITE
+                    };
+
+                    if side == 1 {
+                        color.a /= 2.0;
+                    }
+
+                    break color;
                 }
             };
 
@@ -216,23 +184,20 @@ impl EventHandler for GameState {
                 draw_end = self.screen_size.height as f32 - 1.0;
             }
 
-            canvas.draw(
-                &graphics::Mesh::new_line(
-                    ctx, 
-                    &[
-                        vec2(x as f32, draw_start),
-                        vec2(x as f32, draw_end),
-                    ],
-                    1.,
-                    color
-                )?,
-            graphics::DrawParam::new());
+            lines.push(DrawParam::new()
+                .color(color)
+                .dest(vec2(x as f32, draw_start))
+                .scale(vec2(1.0, (draw_end - draw_start) / self.screen_size.height as f32))
+            );
         }
 
+        let def_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), Rect::new(0.0, 0.0, 1.0, 480.0), Color::WHITE)?;
+        canvas.draw_instanced_mesh(def_mesh, &lines, DrawParam::new());
+
         canvas.finish(ctx)?;
+        ctx.gfx.present(&self.screen.image(ctx))?;
 
         ggez::timer::yield_now();
-
         Ok(())
     }
 }
