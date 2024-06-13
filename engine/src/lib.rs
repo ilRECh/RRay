@@ -8,12 +8,7 @@ use ggez::{
     }, glam::*, graphics::{
         self,
         Color
-    },
-    input::keyboard::KeyCode,
-    mint::Point2,
-    Context,
-    ContextBuilder,
-    GameResult
+    }, input::{keyboard::KeyCode, mouse}, mint::Point2, winit::{self, dpi::{LogicalPosition, PhysicalPosition}}, Context, ContextBuilder, GameResult
 };
 
 use player::Player;
@@ -29,15 +24,19 @@ struct GameState {
 }
 
 impl GameState {
-    pub fn new(_ctx: &mut Context) -> GameResult<Self> {
+    pub fn new(ctx: &mut Context) -> GameResult<Self> {
         let mut world_map = WorldMap::new();
         let player = Player::new(22, 12, &mut world_map)?;
+
+        let _ = ctx.gfx.window().set_cursor_grab(winit::window::CursorGrabMode::Locked);
+        ctx.gfx.window().cur
+        // mouse::set_cursor_hidden(ctx, true);
 
         Ok(Self {
             world_map,
             player,
 
-            mouse_last_position: Point2::from_slice(&[0.0, 0.0]),
+            mouse_last_position: ctx.mouse.position(),
             time_next_update: 0,
             redraw: true
         })
@@ -160,11 +159,15 @@ impl EventHandler for GameState {
                 }
             }
 
+
             let new_mouse_position = ctx.mouse.position();
             let mouse_offset = self.mouse_last_position.x - new_mouse_position.x;
-            let mouse_move = if mouse_offset > 0.1 { mouse_offset.signum() } else { 0.0 };
+            let mouse_move = if mouse_offset.abs() > 0.1 { mouse_offset.signum() } else { 0.0 };
 
             println!("{} {} {}", self.mouse_last_position.x, new_mouse_position.x, mouse_move);
+
+            // println!("{:#?}", ctx.gfx.window().set_cursor_position(LogicalPosition::new(1, 1)));
+            // println!("{:#?}", mouse::set_position(ctx, vec2(1.0, 1.0)));
 
             self.mouse_last_position = new_mouse_position;
 
@@ -178,13 +181,14 @@ impl EventHandler for GameState {
                 self.player.camera.x = old_camera_x * f64::cos(MODIFIER_ROTATION_SPEED) - self.player.camera.y * f64::sin(MODIFIER_ROTATION_SPEED);
                 self.player.camera.y = old_camera_x * f64::sin(MODIFIER_ROTATION_SPEED) + self.player.camera.y * f64::cos(MODIFIER_ROTATION_SPEED);
             } else if mouse_move < 0.0 {
-                // //both camera direction and camera plane must be rotated
-                // double oldDirX = dirX;
-                // dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
-                // dirY = oldDirX * sin(rotSpeed) + dirY * cos(rotSpeed);
-                // double oldPlaneX = planeX;
-                // planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
-                // planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
+                self.redraw = true;
+                let old_direction_x = self.player.direction.x;
+                self.player.direction.x = old_direction_x * f64::cos(-MODIFIER_ROTATION_SPEED) - self.player.direction.y * f64::sin(-MODIFIER_ROTATION_SPEED);
+                self.player.direction.y = old_direction_x * f64::sin(-MODIFIER_ROTATION_SPEED) + self.player.direction.y * f64::cos(-MODIFIER_ROTATION_SPEED);
+
+                let old_camera_x = self.player.camera.x;
+                self.player.camera.x = old_camera_x * f64::cos(-MODIFIER_ROTATION_SPEED) - self.player.camera.y * f64::sin(-MODIFIER_ROTATION_SPEED);
+                self.player.camera.y = old_camera_x * f64::sin(-MODIFIER_ROTATION_SPEED) + self.player.camera.y * f64::cos(-MODIFIER_ROTATION_SPEED);
             }
         }
 
