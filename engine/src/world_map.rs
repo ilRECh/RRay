@@ -49,16 +49,19 @@ impl WorldMap {
     }
 
     pub fn insert(&mut self, value: i32, x: i32, y: i32) -> GameResult {
-        self.check_limits(x, y)?;
-
-        self.world_map[x as usize][y as usize] = value;
+        if self.at(x, y).unwrap() == 0 {
+            self.world_map[x as usize][y as usize] = value;
+        }
 
         Ok(())
     }
 
     pub fn change_position(&mut self, from: Point2<i32>, to: Point2<i32>) -> GameResult {
-        self.check_limits(from.x, from.y)?;
-        self.check_limits(to.x, to.y)?;
+        if self.at(to.x, to.y).unwrap() == 0 {
+            let tmp = self.world_map[from.x as usize][from.y as usize];
+            self.world_map[from.x as usize][from.y as usize] = self.world_map[to.x as usize][to.y as usize];
+            self.world_map[to.x as usize][to.y as usize] = tmp;
+        }
 
         Ok(())
     }
