@@ -38,14 +38,14 @@ pub struct GameState {
 impl GameState {
     pub fn new(ctx: &mut Context) -> GameResult<Self> {
         let world_map = Rc::new(RefCell::new(WorldMap::new()));
-        let player = Player::new(22, 12, &world_map)?;
+        let player = Player::new(2, 5, 270.0, &world_map)?;
 
         mouse::set_cursor_grabbed(ctx, true)?;
 
         let screen = 
             graphics::ScreenImage::new(ctx, graphics::ImageFormat::Rgba8UnormSrgb, 1., 1., 1);
 
-        let texture = Texture::new("nowhere");
+        let texture = Texture::new(ctx);
 
         Ok(Self {
             screen,
@@ -88,7 +88,7 @@ impl GameState {
         let mouse_offset = mouse_position_x - self.screen_size.width as f32 / 2.0;
 
         if mouse_offset.abs() > self.screen_size.width as f32 / 4.0 {
-            self.player.move_rotate(-1.0 * mouse_offset);
+            self.player.move_rotate(mouse_offset);
         }
     }
 }

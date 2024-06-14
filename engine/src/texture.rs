@@ -2,11 +2,15 @@ pub struct Texture {
     walls: WallsTexture
 }
 
-use ggez::winit::dpi::PhysicalSize;
+use ggez::{
+    graphics,
+    winit::dpi::PhysicalSize,
+    Context
+};
 
 use crate::raycasting::Line;
 
-type WallsTexture = Vec<Vec<u32>>;
+type WallsTexture = Vec<Vec<u8>>;
 
 const TEXTURE_WIDTH: u32 = 64;
 const TEXTURE_HEIGHT: u32 = 64;
@@ -21,9 +25,33 @@ const TEXTURE_HEIGHT: u32 = 64;
 const WALL_TEXTURE_FLAT_GREY: i32 = 8;
 
 impl Texture {
-    pub fn new(_path: &str) -> Self {
-        let walls = Self::generate_textures();
-        
+    pub fn new(ctx: &mut Context) -> Self {
+        let mut walls = Vec::with_capacity(8);
+
+        let bluestone = graphics::Image::from_path(ctx, "/bluestone.png").unwrap();
+        walls.push(bluestone.to_pixels(ctx).unwrap());
+
+        let colorstone = graphics::Image::from_path(ctx, "/colorstone.png").unwrap();
+        walls.push(colorstone.to_pixels(ctx).unwrap());
+
+        let eagle = graphics::Image::from_path(ctx, "/eagle.png").unwrap();
+        walls.push(eagle.to_pixels(ctx).unwrap());
+
+        let greystone = graphics::Image::from_path(ctx, "/greystone.png").unwrap();
+        walls.push(greystone.to_pixels(ctx).unwrap());
+
+        let mossy = graphics::Image::from_path(ctx, "/mossy.png").unwrap();
+        walls.push(mossy.to_pixels(ctx).unwrap());
+
+        let purplestone = graphics::Image::from_path(ctx, "/purplestone.png").unwrap();
+        walls.push(purplestone.to_pixels(ctx).unwrap());
+
+        let redbrick = graphics::Image::from_path(ctx, "/redbrick.png").unwrap();
+        walls.push(redbrick.to_pixels(ctx).unwrap());
+
+        let wood = graphics::Image::from_path(ctx, "/wood.png").unwrap();
+        walls.push(wood.to_pixels(ctx).unwrap());
+
         Self {
             walls
         }
@@ -65,15 +93,13 @@ impl Texture {
             for y in start..end {
                 let texture_y = texture_pos as u32 & (TEXTURE_HEIGHT - 1);
                 texture_pos += step;
-                let mut pixel = wall[(TEXTURE_HEIGHT * texture_y + texture_x) as usize].to_be_bytes();
-                pixel[0] = 255 / dimm;
-
                 let index_pixel = (y * screen_size.width + line.screen_x as u32) as usize * 4;
+                let index_texture = (TEXTURE_HEIGHT * texture_y + texture_x) as usize * 4;
 
-                pixels[index_pixel + 0] = pixel[1];
-                pixels[index_pixel + 1] = pixel[2];
-                pixels[index_pixel + 2] = pixel[3];
-                pixels[index_pixel + 3] = pixel[0];
+                pixels[index_pixel + 0] = wall[index_texture + 0];
+                pixels[index_pixel + 1] = wall[index_texture + 1];
+                pixels[index_pixel + 2] = wall[index_texture + 2];
+                pixels[index_pixel + 3] = wall[index_texture + 3] / dimm;
             }
         }
 
@@ -95,7 +121,7 @@ impl Texture {
         // }
     }
 
-    fn code_to_texture(&self, code: i32) -> &Vec<u32> {
+    fn code_to_texture(&self, code: i32) -> &Vec<u8> {
         if code < 0 || code > WALL_TEXTURE_FLAT_GREY {
             panic!("No such code is associated with any texture!");
         }
@@ -103,34 +129,34 @@ impl Texture {
         &self.walls[code as usize]
     }
 
-    fn generate_textures() -> WallsTexture {
-        let mut texture = vec![vec![0; (TEXTURE_WIDTH * TEXTURE_HEIGHT) as usize]; 8];
+    // fn generate_textures() -> WallsTexture {
+    //     let mut texture = vec![vec![0; (TEXTURE_WIDTH * TEXTURE_HEIGHT) as usize]; 8];
 
-        for x in 0..TEXTURE_WIDTH {
-            for y in 0..TEXTURE_HEIGHT {
-                let xorcolor = (x * 256 / TEXTURE_WIDTH) ^ (y * 256 / TEXTURE_HEIGHT);
-                let ycolor = y * 256 / TEXTURE_HEIGHT;
-                let xycolor = y * 128 / TEXTURE_HEIGHT + x * 128 / TEXTURE_WIDTH;
+    //     for x in 0..TEXTURE_WIDTH {
+    //         for y in 0..TEXTURE_HEIGHT {
+    //             let xorcolor = (x * 256 / TEXTURE_WIDTH) ^ (y * 256 / TEXTURE_HEIGHT);
+    //             let ycolor = y * 256 / TEXTURE_HEIGHT;
+    //             let xycolor = y * 128 / TEXTURE_HEIGHT + x * 128 / TEXTURE_WIDTH;
 
-                //flat red texture with black cross
-                texture[0][(TEXTURE_WIDTH * y + x) as usize] = 65536 * 254 * if x != y && x != TEXTURE_WIDTH - y { 1 } else { 0 };
-                //sloped greyscale
-                texture[1][(TEXTURE_WIDTH * y + x) as usize] = xycolor + 256 * xycolor + 65536 * xycolor;
-                //sloped yellow gradient
-                texture[2][(TEXTURE_WIDTH * y + x) as usize] = 256 * xycolor + 65536 * xycolor;
-                //xor greyscale
-                texture[3][(TEXTURE_WIDTH * y + x) as usize] = xorcolor + 256 * xorcolor + 65536 * xorcolor;
-                //xor green
-                texture[4][(TEXTURE_WIDTH * y + x) as usize] = 256 * xorcolor;
-                //red bricks
-                texture[5][(TEXTURE_WIDTH * y + x) as usize] = 65536 * 192 * if x % 16 != 0 && y % 16 != 0 { 1 } else { 0 };
-                //red gradient
-                texture[6][(TEXTURE_WIDTH * y + x) as usize] = 65536 * ycolor;
-                //flat grey texture
-                texture[7][(TEXTURE_WIDTH * y + x) as usize] = 128 + 256 * 128 + 65536 * 128;
-            }
-        }
+    //             //flat red texture with black cross
+    //             texture[0][(TEXTURE_WIDTH * y + x) as usize] = 65536 * 254 * if x != y && x != TEXTURE_WIDTH - y { 1 } else { 0 };
+    //             //sloped greyscale
+    //             texture[1][(TEXTURE_WIDTH * y + x) as usize] = xycolor + 256 * xycolor + 65536 * xycolor;
+    //             //sloped yellow gradient
+    //             texture[2][(TEXTURE_WIDTH * y + x) as usize] = 256 * xycolor + 65536 * xycolor;
+    //             //xor greyscale
+    //             texture[3][(TEXTURE_WIDTH * y + x) as usize] = xorcolor + 256 * xorcolor + 65536 * xorcolor;
+    //             //xor green
+    //             texture[4][(TEXTURE_WIDTH * y + x) as usize] = 256 * xorcolor;
+    //             //red bricks
+    //             texture[5][(TEXTURE_WIDTH * y + x) as usize] = 65536 * 192 * if x % 16 != 0 && y % 16 != 0 { 1 } else { 0 };
+    //             //red gradient
+    //             texture[6][(TEXTURE_WIDTH * y + x) as usize] = 65536 * ycolor;
+    //             //flat grey texture
+    //             texture[7][(TEXTURE_WIDTH * y + x) as usize] = 128 + 256 * 128 + 65536 * 128;
+    //         }
+    //     }
 
-        texture
-    }
+    //     texture
+    // }
 }
