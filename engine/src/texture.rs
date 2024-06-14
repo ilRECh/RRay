@@ -8,7 +8,10 @@ use ggez::{
     Context
 };
 
-use crate::raycasting::Line;
+use crate::raycasting::{
+    LineWall,
+    LineFloor
+};
 
 type WallsTexture = Vec<Vec<u8>>;
 
@@ -50,10 +53,10 @@ impl Texture {
         }
     }
 
-    pub fn convert_dda_to_pixels(
+    pub fn convert_dda_walls_to_pixels(
         &self,
         screen_size: &PhysicalSize<u32>,
-        lines: Vec<Line>,
+        lines: Vec<LineWall>,
         pixels: &mut [u8]
     ) {
         for line in lines.iter() {
@@ -93,6 +96,51 @@ impl Texture {
                 pixels[index_pixel + 1] = wall[index_texture + 1];
                 pixels[index_pixel + 2] = wall[index_texture + 2];
                 pixels[index_pixel + 3] = wall[index_texture + 3] / dimm;
+            }
+        }
+    }
+
+    pub fn convert_dda_floor_to_pixels(
+        &self,
+        screen_size: &PhysicalSize<u32>,
+        mut lines: Vec<LineFloor>,
+        pixels: &mut [u8]
+    ) {
+        let floor_texture = self.code_to_texture(3);
+        let ceiling_texture = self.code_to_texture(7);
+
+        for line in lines.iter_mut() {
+            for x in 0..screen_size.width {
+                // the cell coord is simply got from the integer parts of floorX and floorY
+                let cell_x = line.floor_x as u32;
+                let cell_y = line.floor_y as u32;
+        
+                // get the texture coordinate from the fractional part
+                let tx = (TEXTURE_WIDTH as f32 * (line.floor_x - cell_x as f32)) as u32 & (TEXTURE_WIDTH - 1);
+                let ty = (TEXTURE_HEIGHT as f32 * (line.floor_y - cell_y as f32)) as u32 & (TEXTURE_HEIGHT - 1);
+        
+                line.floor_x += line.floor_step_x;
+                line.floor_y += line.floor_step_y;
+        
+                // floor
+                let index_pixel = (line.screen_y as u32 * screen_size.width + x) as usize * 4;
+                let index_texture = (TEXTURE_WIDTH * ty + tx) as usize * 4;
+
+                pixels[index_pixel + 0] = floor_texture[index_texture + 0];
+                pixels[index_pixel + 1] = floor_texture[index_texture + 1];
+                pixels[index_pixel + 2] = floor_texture[index_texture + 2];
+                pixels[index_pixel + 3] = floor_texture[index_texture + 3] / 4;
+
+
+                //ceiling (symmetrical, at screenHeight - y - 1 instead of y)
+                let index_pixel = ((screen_size.height - line.screen_y as u32 - 1) * screen_size.width + x) as usize * 4;
+                let index_texture = (TEXTURE_WIDTH * ty + tx) as usize * 4;
+
+                pixels[index_pixel + 0] = ceiling_texture[index_texture + 0];
+                pixels[index_pixel + 1] = ceiling_texture[index_texture + 1];
+                pixels[index_pixel + 2] = ceiling_texture[index_texture + 2];
+                pixels[index_pixel + 3] = ceiling_texture[index_texture + 3] / 4;
+
             }
         }
     }

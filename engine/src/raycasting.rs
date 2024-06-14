@@ -5,7 +5,7 @@ use crate::{
     world_map::WorldMap
 };
 
-pub struct Line {
+pub struct LineWall {
     pub wall_code: i32,
     pub wall_side: u8,
     pub wall_x: f32,
@@ -16,7 +16,15 @@ pub struct Line {
     pub y_end: f32
 }
 
-pub fn dda(screen_size: &PhysicalSize<u32>, player: &Player, world_map: &WorldMap) -> Vec<Line> {
+pub struct LineFloor {
+    pub floor_step_x: f32,
+    pub floor_step_y: f32,
+    pub floor_x: f32,
+    pub floor_y: f32,
+    pub screen_y: f32
+}
+
+pub fn dda_walls(screen_size: &PhysicalSize<u32>, player: &Player, world_map: &WorldMap) -> Vec<LineWall> {
     let mut lines = Vec::with_capacity(screen_size.width as usize);
 
     for x in 0..screen_size.width {
@@ -93,7 +101,7 @@ pub fn dda(screen_size: &PhysicalSize<u32>, player: &Player, world_map: &WorldMa
 
         wall_x -= wall_x.floor();
 
-        lines.push(Line {
+        lines.push(LineWall {
             wall_side: side,
             wall_code: wall - 1,
             wall_x,
@@ -102,6 +110,46 @@ pub fn dda(screen_size: &PhysicalSize<u32>, player: &Player, world_map: &WorldMa
             screen_x: x as f32,
             y_start: draw_start,
             y_end: draw_end
+        });
+    }
+
+    lines
+}
+
+pub fn dda_floor(screen_size: &PhysicalSize<u32>, player: &Player) -> Vec<LineFloor> {
+    let mut lines = Vec::with_capacity(screen_size.height as usize);
+
+    for y in screen_size.height as i32 / 2 + 1..screen_size.height as i32 {
+        let ray_dir_x0 = player.direction.x - player.camera.x;
+        let ray_dir_y0 = player.direction.y - player.camera.y;
+        let ray_dir_x1 = player.direction.x + player.camera.x;
+        let ray_dir_y1 = player.direction.y + player.camera.y;
+
+        // Current y position compared to the center of the screen (the horizon)
+        let p = y - screen_size.height as i32 / 2;
+
+        // Vertical position of the camera.
+        let pos_z = 0.5 * screen_size.height as f32;
+
+        // Horizontal distance from the camera to the floor for the current row.
+        // 0.5 is the z position exactly in the middle between floor and ceiling.
+        let row_distance = pos_z / p as f32;
+
+        // calculate the real world step vector we have to add for each x (parallel to camera plane)
+        // adding step by step avoids multiplications with a weight in the inner loop
+        let floor_step_x = row_distance * (ray_dir_x1 - ray_dir_x0) / screen_size.width as f32;
+        let floor_step_y = row_distance * (ray_dir_y1 - ray_dir_y0) / screen_size.width as f32;
+
+        // real world coordinates of the leftmost column. This will be updated as we step to the right.
+        let floor_x = player.position.x + row_distance * ray_dir_x0;
+        let floor_y = player.position.y + row_distance * ray_dir_y0;
+
+        lines.push(LineFloor {
+            floor_step_x,
+            floor_step_y,
+            floor_x,
+            floor_y,
+            screen_y: y as f32
         });
     }
 

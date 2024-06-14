@@ -115,10 +115,15 @@ impl EventHandler for GameState {
             self.screen_size.width as usize * self.screen_size.height as usize * RGBA_CHANNELS
         ];
 
-        let lines = raycasting::dda(
+        let lines_floor = raycasting::dda_floor(
+            &self.screen_size, &self.player
+        );
+        self.texture.convert_dda_floor_to_pixels(&self.screen_size, lines_floor, &mut pixels);
+
+        let lines_walls = raycasting::dda_walls(
             &self.screen_size, &self.player, &self.world_map.borrow()
         );
-        self.texture.convert_dda_to_pixels(&self.screen_size, lines, &mut pixels);
+        self.texture.convert_dda_walls_to_pixels(&self.screen_size, lines_walls, &mut pixels);
 
         let mut canvas = graphics::Canvas::from_screen_image(
             ctx, &mut self.screen, Color::BLACK
