@@ -111,35 +111,4 @@ impl Texture {
 
         &self.walls[code as usize]
     }
-
-    // fn generate_textures() -> WallsTexture {
-    //     let mut texture = vec![vec![0; (TEXTURE_WIDTH * TEXTURE_HEIGHT) as usize]; 8];
-
-    //     for x in 0..TEXTURE_WIDTH {
-    //         for y in 0..TEXTURE_HEIGHT {
-    //             let xorcolor = (x * 256 / TEXTURE_WIDTH) ^ (y * 256 / TEXTURE_HEIGHT);
-    //             let ycolor = y * 256 / TEXTURE_HEIGHT;
-    //             let xycolor = y * 128 / TEXTURE_HEIGHT + x * 128 / TEXTURE_WIDTH;
-
-    //             //flat red texture with black cross
-    //             texture[0][(TEXTURE_WIDTH * y + x) as usize] = 65536 * 254 * if x != y && x != TEXTURE_WIDTH - y { 1 } else { 0 };
-    //             //sloped greyscale
-    //             texture[1][(TEXTURE_WIDTH * y + x) as usize] = xycolor + 256 * xycolor + 65536 * xycolor;
-    //             //sloped yellow gradient
-    //             texture[2][(TEXTURE_WIDTH * y + x) as usize] = 256 * xycolor + 65536 * xycolor;
-    //             //xor greyscale
-    //             texture[3][(TEXTURE_WIDTH * y + x) as usize] = xorcolor + 256 * xorcolor + 65536 * xorcolor;
-    //             //xor green
-    //             texture[4][(TEXTURE_WIDTH * y + x) as usize] = 256 * xorcolor;
-    //             //red bricks
-    //             texture[5][(TEXTURE_WIDTH * y + x) as usize] = 65536 * 192 * if x % 16 != 0 && y % 16 != 0 { 1 } else { 0 };
-    //             //red gradient
-    //             texture[6][(TEXTURE_WIDTH * y + x) as usize] = 65536 * ycolor;
-    //             //flat grey texture
-    //             texture[7][(TEXTURE_WIDTH * y + x) as usize] = 128 + 256 * 128 + 65536 * 128;
-    //         }
-    //     }
-
-    //     texture
-    // }
 }
