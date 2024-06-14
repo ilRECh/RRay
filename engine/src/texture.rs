@@ -15,14 +15,7 @@ type WallsTexture = Vec<Vec<u8>>;
 const TEXTURE_WIDTH: u32 = 64;
 const TEXTURE_HEIGHT: u32 = 64;
 
-// const WALL_TEXTURE_BLACK_CROSS: i32 = 1;
-// const WALL_TEXTURE_SLOPED_GREYSCALE: i32 = 2;
-// const WALL_TEXTURE_SLOPED_YELLOW_GRADIENT: i32 = 3;
-// const WALL_TEXTURE_XOR_GREYSCALE: i32 = 4;
-// const WALL_TEXTURE_XOR_GREEN: i32 = 5;
-// const WALL_TEXTURE_RED_BRICKS: i32 = 6;
-// const WALL_TEXTURE_RED_GRADIENT: i32 = 7;
-const WALL_TEXTURE_FLAT_GREY: i32 = 8;
+const TEXTURE_MAX: i32 = 8;
 
 impl Texture {
     pub fn new(ctx: &mut Context) -> Self {
@@ -105,7 +98,7 @@ impl Texture {
     }
 
     fn code_to_texture(&self, code: i32) -> &Vec<u8> {
-        if code < 0 || code > WALL_TEXTURE_FLAT_GREY {
+        if code < 0 || code > TEXTURE_MAX {
             panic!("No such code is associated with any texture!");
         }
 
