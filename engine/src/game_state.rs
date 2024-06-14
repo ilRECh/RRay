@@ -22,6 +22,8 @@ use std::{
 pub struct GameState {
     screen: graphics::ScreenImage,
     screen_size: PhysicalSize<u32>,
+    fps: f64,
+
     world_map: Rc<RefCell<WorldMap>>,
     player: Player,
 }
@@ -39,6 +41,8 @@ impl GameState {
         Ok(Self {
             screen,
             screen_size: ctx.gfx.window().outer_size(),
+            fps: 0.0,
+
             world_map,
             player,
         })
@@ -81,17 +85,17 @@ impl GameState {
 
 impl EventHandler for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        // if ctx.time.ticks() % 100 == 0 {
-        //     println!("{}  {}", ctx.time.fps(), ctx.time.delta().as_millis());
-        // }
-
         const DESIRED_FPS: u32 = 60;
 
         while ctx.time.check_update_time(DESIRED_FPS) {
             self.handle_keyboard(ctx.keyboard.pressed_keys());
             self.handle_mouse(ctx.mouse.position().x);
         }
-
+        
+        if ctx.time.ticks() % 100 == 0 {
+            self.fps = ctx.time.fps().floor();
+        }
+        
         Ok(())
     }
 
@@ -192,8 +196,12 @@ impl EventHandler for GameState {
         }
 
         let def_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), Rect::new(0.0, 0.0, 1.0, 480.0), Color::WHITE)?;
-        canvas.draw_instanced_mesh(def_mesh, &lines, DrawParam::new());
 
+        canvas.draw_instanced_mesh(def_mesh, &lines, DrawParam::new());
+        canvas.draw(
+            &graphics::Text::new(String::from("FPS: ") + self.fps.to_string().as_str()),
+            graphics::DrawParam::new()
+        );
         canvas.finish(ctx)?;
         ctx.gfx.present(&self.screen.image(ctx))?;
 
