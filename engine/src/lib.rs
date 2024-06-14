@@ -1,6 +1,12 @@
 mod player;
 mod world_map;
 mod game_state;
+mod raycasting;
+mod texture;
+
+pub use crate::player::Player;
+pub use crate::world_map::WorldMap;
+pub use crate::texture::Texture;
 
 use ggez::{
     GameResult,
