@@ -101,105 +101,117 @@ impl EventHandler for GameState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = graphics::Canvas::from_screen_image(ctx, &mut self.screen, Color::BLACK);
-        let player = &self.player;
+        // let player = &self.player;
 
-        let mut lines = graphics::InstanceArray::new(ctx, None);
-        lines.resize(ctx, 640);
+        // let mut lines = graphics::InstanceArray::new(ctx, None);
+        // lines.resize(ctx, self.screen_size.width as usize);
 
-        for x in 0..self.screen_size.width {
-            let screen_x = 2.0 * (x as f32) / (self.screen_size.width as f32) - 1.0;
-            let ray_dir_x = player.direction.x + player.camera.x * screen_x;
-            let ray_dir_y = player.direction.y + player.camera.y * screen_x;
+        // let mut mesh = graphics::MeshBuilder::new();
 
-            // which box of the map we're in
-            let mut map_x = player.position.x as i32;
-            let mut map_y = player.position.y as i32;
+        // for x in 0..self.screen_size.width {
+        //     let screen_x = 2.0 * (x as f32) / (self.screen_size.width as f32) - 1.0;
+        //     let ray_dir_x = player.direction.x + player.camera.x * screen_x;
+        //     let ray_dir_y = player.direction.y + player.camera.y * screen_x;
 
-            // length of ray from one x or y-size to next x or y-side correspondingly
-            let delta_dist_x = f32::abs(1.0 / ray_dir_x);
-            let delta_dist_y = f32::abs(1.0 / ray_dir_y);
+        //     // which box of the map we're in
+        //     let mut map_x = player.position.x as i32;
+        //     let mut map_y = player.position.y as i32;
 
-            // side_dist_ : length of ray from current position to next x or y-side
-            // step_ : what direction to step in x or y-direction (either -1 or 1)
-            let (mut side_dist_x, step_x) = if ray_dir_x < 0.0 {
-                    ((player.position.x - map_x as f32) * delta_dist_x, -1)
-                } else { 
-                    ((map_x as f32 + 1.0 - player.position.x) * delta_dist_x, 1)
-                };
+        //     // length of ray from one x or y-size to next x or y-side correspondingly
+        //     let delta_dist_x = f32::abs(1.0 / ray_dir_x);
+        //     let delta_dist_y = f32::abs(1.0 / ray_dir_y);
 
-            let (mut side_dist_y, step_y) = if ray_dir_y < 0.0 {
-                    ((player.position.y - map_y as f32) * delta_dist_y, -1)
-                } else { 
-                    ((map_y as f32 + 1.0 - player.position.y) * delta_dist_y, 1)
-                };
+        //     // side_dist_ : length of ray from current position to next x or y-side
+        //     // step_ : what direction to step in x or y-direction (either -1 or 1)
+        //     let (mut side_dist_x, step_x) = if ray_dir_x < 0.0 {
+        //             ((player.position.x - map_x as f32) * delta_dist_x, -1)
+        //         } else { 
+        //             ((map_x as f32 + 1.0 - player.position.x) * delta_dist_x, 1)
+        //         };
 
-            // which side was hit? (NS or WE)
-            let mut side;
+        //     let (mut side_dist_y, step_y) = if ray_dir_y < 0.0 {
+        //             ((player.position.y - map_y as f32) * delta_dist_y, -1)
+        //         } else { 
+        //             ((map_y as f32 + 1.0 - player.position.y) * delta_dist_y, 1)
+        //         };
 
-            let color = loop {
-                if side_dist_x < side_dist_y {
-                    side_dist_x += delta_dist_x;
-                    map_x += step_x;
-                    side = 0;
-                } else {
-                    side_dist_y += delta_dist_y;
-                    map_y += step_y;
-                    side = 1;
-                }
+        //     // which side was hit? (NS or WE)
+        //     let mut side;
 
-                let maybe_wall = self.world_map.borrow_mut().at(&mut map_x, &mut map_y);
+        //     let color = loop {
+        //         if side_dist_x < side_dist_y {
+        //             side_dist_x += delta_dist_x;
+        //             map_x += step_x;
+        //             side = 0;
+        //         } else {
+        //             side_dist_y += delta_dist_y;
+        //             map_y += step_y;
+        //             side = 1;
+        //         }
 
-                if maybe_wall > 0 && maybe_wall != b'P' as i32 {
-                    let mut color = match maybe_wall {
-                        1 => Color::RED,
-                        2 => Color::GREEN,
-                        3 => Color::BLUE,
-                        4 => Color::YELLOW,
-                        _ => Color::WHITE
-                    };
+        //         let maybe_wall = self.world_map.borrow_mut().at(&mut map_x, &mut map_y);
 
-                    if side == 1 {
-                        color.a /= 2.0;
-                    }
+        //         if maybe_wall > 0 && maybe_wall != b'P' as i32 {
+        //             let mut color = match maybe_wall {
+        //                 1 => Color::RED,
+        //                 2 => Color::GREEN,
+        //                 3 => Color::BLUE,
+        //                 4 => Color::YELLOW,
+        //                 _ => Color::WHITE
+        //             };
 
-                    break color;
-                }
-            };
+        //             if side == 1 {
+        //                 color.a /= 2.0;
+        //             }
 
-            let perp_wall_dist = if side == 0 {
-                    side_dist_x - delta_dist_x
-                } else {
-                    side_dist_y - delta_dist_y
-                };
+        //             break color;
+        //         }
+        //     };
 
-            // calculate height of line to draw on screen
-            let line_height = self.screen_size.height as f32 / perp_wall_dist;
+        //     let perp_wall_dist = if side == 0 {
+        //             side_dist_x - delta_dist_x
+        //         } else {
+        //             side_dist_y - delta_dist_y
+        //         };
 
-            //calculate lowest and highest pixel to fill in current stripe
-            let mut draw_start = -1.0 * line_height / 2.0 + self.screen_size.height as f32 / 2.0;
+        //     // calculate height of line to draw on screen
+        //     let line_height = self.screen_size.height as f32 / perp_wall_dist;
 
-            if draw_start < 0.0 {
-                draw_start = 0.0;
-            }
+        //     //calculate lowest and highest pixel to fill in current stripe
+        //     let mut draw_start = -1.0 * line_height / 2.0 + self.screen_size.height as f32 / 2.0;
 
-            let mut draw_end = line_height / 2.0 + self.screen_size.height as f32 / 2.0;
+        //     if draw_start < 0.0 {
+        //         draw_start = 0.0;
+        //     }
 
-            if draw_end >= self.screen_size.height as f32 {
-                draw_end = self.screen_size.height as f32 - 1.0;
-            }
+        //     let mut draw_end = line_height / 2.0 + self.screen_size.height as f32 / 2.0;
 
-            lines.push(DrawParam::new()
-                .color(color)
-                .dest(vec2(x as f32, draw_start))
-                .scale(vec2(1.0, (draw_end - draw_start) / self.screen_size.height as f32))
-            );
-        }
+        //     if draw_end >= self.screen_size.height as f32 {
+        //         draw_end = self.screen_size.height as f32 - 1.0;
+        //     }
 
-        let def_mesh = graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), Rect::new(0.0, 0.0, 1.0, 480.0), Color::WHITE)?;
+        //     // lines.push(DrawParam::new()
+        //     //     .color(color)
+        //     //     .dest_rect(
+        //     //         Rect::new(x as f32, draw_start, 1.0, draw_end - draw_start)
+        //     //     )
+                
+        //     // );
 
-        canvas.draw_instanced_mesh(def_mesh, &lines, DrawParam::new());
+        //     mesh.line(&[vec2(x as f32, draw_start), vec2(x as f32, draw_end)], 1.0, color)?;
+        // }
+
+        let pixels = vec![20; 640 * 480 * 4];
+        let image = graphics::Image::from_pixels(ctx, pixels.as_slice(), graphics::ImageFormat::Rgba8UnormSrgb, 640, 480);
+        // let mut canvas = graphics::Canvas::from_screen_image(ctx, &mut self.screen, Color::BLACK);
+        // canvas.draw_instanced_mesh(def_mesh, &lines, DrawParam::new());
+        // canvas.draw(&lines, DrawParam::new());
+        // canvas.draw(&graphics::Mesh::from_data(ctx, mesh.build()), DrawParam::new());
+        canvas.draw(&image, graphics::DrawParam::new());
         canvas.draw(
-            &graphics::Text::new(String::from("FPS: ") + self.fps.to_string().as_str()),
+            &graphics::Text::new(
+                String::from("FPS: ") + self.fps.to_string().as_str()
+            ),
             graphics::DrawParam::new()
         );
         canvas.finish(ctx)?;
