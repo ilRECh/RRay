@@ -102,23 +102,6 @@ impl Texture {
                 pixels[index_pixel + 3] = wall[index_texture + 3] / dimm;
             }
         }
-
-        // list all textures
-        // for t in 0..8 {
-        //     let wall = self.code_to_texture(t as i32);
-
-        //     for i in 0..TEXTURE_WIDTH as usize {
-        //         for j in 0..TEXTURE_HEIGHT as usize {
-        //             let bytes = wall[i * TEXTURE_WIDTH as usize + j].to_be_bytes();
-        //             let index_pixel = (i * screen_size.width as usize + j + lines[0].y_start as usize * 640) * 4 + TEXTURE_WIDTH as usize * 4 * t;
-    
-        //             pixels[index_pixel + 0] = bytes[1];
-        //             pixels[index_pixel + 1] = bytes[2];
-        //             pixels[index_pixel + 2] = bytes[3];
-        //             pixels[index_pixel + 3] = 255;
-        //         }
-        //     }
-        // }
     }
 
     fn code_to_texture(&self, code: i32) -> &Vec<u8> {
