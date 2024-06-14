@@ -41,6 +41,7 @@ impl GameState {
         let player = Player::new(2, 5, 270.0, &world_map)?;
 
         mouse::set_cursor_grabbed(ctx, true)?;
+        mouse::set_cursor_hidden(ctx, true);
 
         let screen = 
             graphics::ScreenImage::new(ctx, graphics::ImageFormat::Rgba8UnormSrgb, 1., 1., 1);
