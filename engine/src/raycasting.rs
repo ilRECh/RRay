@@ -9,6 +9,8 @@ pub struct Line {
     pub wall_code: i32,
     pub wall_side: u8,
     pub wall_x: f32,
+    pub ray_dir_x: f32,
+    pub ray_dir_y: f32,
     pub screen_x: f32,
     pub y_start: f32,
     pub y_end: f32
@@ -61,7 +63,7 @@ pub fn dda(screen_size: &PhysicalSize<u32>, player: &Player, world_map: &WorldMa
 
             wall = world_map.at(&mut map_x, &mut map_y);
 
-            // todo: don't interact with player.
+            // todo: interact with player.
             // should be a proper call rather than stupid "wall != b'P'" check
             if wall > 0 && wall != b'P' as i32 {
                 break;
@@ -78,22 +80,25 @@ pub fn dda(screen_size: &PhysicalSize<u32>, player: &Player, world_map: &WorldMa
         let line_height = screen_size.height as f32 / perp_wall_dist;
 
         //calculate lowest and highest pixel to fill in current stripe
-        let mut draw_start = -1.0 * line_height / 2.0 + screen_size.height as f32 / 2.0;
+        let (draw_start, draw_end) = (
+            -1.0 * line_height / 2.0 + screen_size.height as f32 / 2.0,
+            line_height / 2.0 + screen_size.height as f32 / 2.0
+        );
 
-        if draw_start < 0.0 {
-            draw_start = 0.0;
-        }
+        let mut wall_x = if side == 0 {
+            player.position.y + perp_wall_dist * ray_dir_y
+        } else {
+            player.position.x + perp_wall_dist * ray_dir_x
+        };
 
-        let mut draw_end = line_height / 2.0 + screen_size.height as f32 / 2.0;
-
-        if draw_end >= screen_size.height as f32 {
-            draw_end = screen_size.height as f32 - 1.0;
-        }
+        wall_x -= wall_x.floor();
 
         lines.push(Line {
             wall_side: side,
-            wall_code: wall,
-            wall_x: x as f32, // no, something else
+            wall_code: wall - 1,
+            wall_x,
+            ray_dir_x,
+            ray_dir_y,
             screen_x: x as f32,
             y_start: draw_start,
             y_end: draw_end

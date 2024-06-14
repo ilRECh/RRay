@@ -118,7 +118,7 @@ impl EventHandler for GameState {
         let lines = raycasting::dda(
             &self.screen_size, &self.player, &self.world_map.borrow()
         );
-        self.texture.convert_dda_to_pixels(lines, &mut pixels);
+        self.texture.convert_dda_to_pixels(&self.screen_size, lines, &mut pixels);
 
         let mut canvas = graphics::Canvas::from_screen_image(
             ctx, &mut self.screen, Color::BLACK
