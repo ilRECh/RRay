@@ -36,7 +36,7 @@ Contains the information about all textures:
 Handles the map changes, e.g. the player's repositioning.
 
 ## Demo
-![](demo.gif "rray")
+[https://www.youtube.com/watch?v=eR_CmdlfEyQ](https://www.youtube.com/watch?v=eR_CmdlfEyQ)
 
 ## Features
 - Raycasting
