@@ -1,8 +1,7 @@
 # rray
 
 ## Description
-
-## Reasoning
+A raycaster written with the Rust programming language.
 
 ## Tech stack
 - Rust
