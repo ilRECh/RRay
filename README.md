@@ -1,4 +1,4 @@
-## rray
+# rray
 
 ## Description
 
@@ -8,7 +8,7 @@
 - Rust
     - [ggez](https://github.com/ggez/ggez) framework
 - Cargo
-- Linux (debian based)
+- Linux (Debian-based)
 
 ## Design
 - [Classes](#Classes)
@@ -21,7 +21,7 @@
 ## Classes
 
 ### GameState
-Main class in the program, which contains input handlers and redraw functionality.
+It's the main class in the program, which contains input handlers and redraw functionality.
 
 ### Player
 Handles the player's positioning and movements. Works with WASD inputs and supports "fishy" mouse movements.
@@ -36,13 +36,13 @@ Contains the information about all textures:
 Handles the map changes, e.g. the player's repositioning.
 
 ## Demo
-[https://www.youtube.com/watch?v=eR_CmdlfEyQ](https://www.youtube.com/watch?v=eR_CmdlfEyQ)
+https://github.com/ilRECh/rray/assets/56624748/dea99873-43f4-4524-8739-e11831294e32
 
 ## Features
 - Raycasting
 
 ## Known problems
-- On the Debian-based systems the mouse capturing does not work properly. Without sudo it's impossible to set the position of the cursor, and even then capturing does not work.
+- On the Debian-based systems the mouse capturing does not work properly. Without sudo, it's impossible to set the position of the cursor, and even then capturing does not work.
 
 ## How to run
 
