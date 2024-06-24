@@ -36,13 +36,13 @@ Contains the information about all textures:
 Handles the map changes, e.g. the player's repositioning.
 
 ## Demo
-[](rray.mp4)
+https://github.com/ilRECh/rray/assets/56624748/bc8294a1-e69d-4857-8b43-26cacb4d6144
 
 ## Features
 - Raycasting
 
 ## Known problems
-- On the Debian-based systems the mouse capturing does not work properly. Without sudo, it's impossible to set the position of the cursor, and even then capturing does not work.
+- On the Debian-based systems the mouse capturing does not work properly. Without sudo, setting the cursor's position is impossible, and even then capturing does not work.
 
 ## How to run
 
