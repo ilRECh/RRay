@@ -36,7 +36,7 @@ Contains the information about all textures:
 Handles the map changes, e.g. the player's repositioning.
 
 ## Demo
-https://github.com/ilRECh/rray/assets/56624748/dea99873-43f4-4524-8739-e11831294e32
+
 
 ## Features
 - Raycasting
